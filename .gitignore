@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.env
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+logs/
+*.log
+
+# Data outputs (keep raw data)
+data/staging/
+data/processed/
+data/warehouse/
+
+# SQLite
+*.sqlite
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
