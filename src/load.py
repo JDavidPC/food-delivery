@@ -51,22 +51,22 @@ def build_star_schema(df, logger=None):
     df_dw["delivery_efficiency_score"] = df_dw["final_amount_paid"] / denom_time
 
     dim_date = df_dw[["order_hour", "day_of_week", "month"]].drop_duplicates().reset_index(drop=True)
-    dim_date["date_id"] = np.arange(1, len(dim_date) + 1)
+    dim_date["date_id"] = np.arange(1, len(dim_date) + 1).astype('int32')
 
     dim_customer_segment = df_dw[
         ["customer_age", "premium_customer_flag", "customer_loyalty_score"]
     ].drop_duplicates().reset_index(drop=True)
-    dim_customer_segment["customer_segment_id"] = np.arange(1, len(dim_customer_segment) + 1)
+    dim_customer_segment["customer_segment_id"] = np.arange(1, len(dim_customer_segment) + 1).astype('int32')
 
     dim_delivery_conditions = df_dw[
         ["traffic_level_score", "weather_severity_score", "city_tier", "festival_or_weekend_flag"]
     ].drop_duplicates().reset_index(drop=True)
-    dim_delivery_conditions["delivery_conditions_id"] = np.arange(1, len(dim_delivery_conditions) + 1)
+    dim_delivery_conditions["delivery_conditions_id"] = np.arange(1, len(dim_delivery_conditions) + 1).astype('int32')
 
     dim_order_status = df_dw[
         ["cancellation_flag", "delayed_delivery_flag", "refund_flag", "promo_code_used"]
     ].drop_duplicates().reset_index(drop=True)
-    dim_order_status["order_status_id"] = np.arange(1, len(dim_order_status) + 1)
+    dim_order_status["order_status_id"] = np.arange(1, len(dim_order_status) + 1).astype('int32')
 
     fact = df_dw.merge(dim_date, on=["order_hour", "day_of_week", "month"], how="left")
     fact = fact.merge(
