@@ -16,13 +16,13 @@ logs/
 *.log
 
 # Data outputs (keep raw data)
-data/staging/
-data/processed/
-data/warehouse/
+# data/staging/
+# data/processed/
+# data/warehouse/
 
 # SQLite
-*.sqlite
-*.db
+# *.sqlite
+# *.db
 
 # OS
 .DS_Store
