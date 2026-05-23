@@ -4,3 +4,7 @@ sqlalchemy
 chardet
 matplotlib
 seaborn
+scipy
+ipykernelç
+jinja2
+scikit-learn
