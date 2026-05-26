@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Food Delivery Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@keyframes blob1{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(30px,-50px) scale(1.1)}50%{transform:translate(-20px,20px) scale(0.9)}75%{transform:translate(10px,-30px) scale(1.05)}}
+@keyframes blob2{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(-40px,30px) scale(0.95)}50%{transform:translate(20px,-40px) scale(1.15)}75%{transform:translate(-10px,20px) scale(1)}}
+@keyframes blob3{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(25px,25px) scale(1.1)}66%{transform:translate(-25px,-15px) scale(0.9)}}
+@keyframes particle{0%{transform:translateY(0)translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-100vh)translateX(50px);opacity:0}}
+@keyframes countUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}
+@keyframes barGrow{from{width:0}to{width:100%}}
+@keyframes barGrowV{from{height:0}to{height:100%}}
+@keyframes donutFill{from{stroke-dashoffset:314}to{stroke-dashoffset:0}}
+body{font-family:'DM Sans',sans-serif;background:#0d1117;overflow:hidden;margin:0;height:100vh;width:100vw}
+.slide{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(0.95);transition:opacity 0.7s ease,transform 0.7s ease;pointer-events:none;z-index:1}
+.slide.active{opacity:1;transform:scale(1);pointer-events:auto;z-index:2}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity 0.5s ease,transform 0.5s ease}
+.slide.active .reveal{opacity:1;transform:translateY(0)}
+.slide.active .reveal:nth-child(1){transition-delay:0ms}
+.slide.active .reveal:nth-child(2){transition-delay:80ms}
+.slide.active .reveal:nth-child(3){transition-delay:160ms}
+.slide.active .reveal:nth-child(4){transition-delay:240ms}
+.slide.active .reveal:nth-child(5){transition-delay:320ms}
+.slide.active .reveal:nth-child(6){transition-delay:400ms}
+.slide.active .reveal:nth-child(7){transition-delay:480ms}
+.slide.active .reveal:nth-child(8){transition-delay:560ms}
+.glass{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);border-radius:16px}
+.glass-accent{border-left:3px solid #f97316}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.15;z-index:0}
+.dot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,0.2);cursor:pointer;transition:all 0.3s}
+.dot.active{background:#f97316;transform:scale(1.3)}
+.dot:hover{background:rgba(255,255,255,0.5)}
+.nav-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;font-size:20px}
+.nav-btn:hover{background:rgba(249,115,22,0.3);border-color:#f97316}
+.nav-btn:active{transform:scale(0.9)}
+.bar-h{height:24px;border-radius:6px;transition:width 1s ease;width:0%}
+.bar-v{width:100%;border-radius:6px 6px 0 0;transition:height 1s ease;height:0%}
+.slide.active .bar-h{animation:barGrow 1s ease forwards}
+.slide.active .bar-v{animation:barGrowV 1s ease forwards}
+.count-up{opacity:0;transform:translateY(20px)}
+.slide.active .count-up{animation:countUp 0.6s ease forwards}
+.particle{position:absolute;width:4px;height:4px;border-radius:50%;background:#f97316;opacity:0;animation:particle 3s ease-in-out infinite}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#f97316;border-radius:3px}
+.text-gradient{background:linear-gradient(135deg,#f97316,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.card-grid-2x3{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card-grid-2x2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:768px){.card-grid-2x3,.card-grid-2x2,.card-grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="spotlight" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;background:radial-gradient(600px at var(--x,50%) var(--y,50%),rgba(249,115,22,0.06),transparent 80%)"></div>
+
+<div id="slides-container" style="position:relative;width:100%;height:100%">
+
+<!-- SLIDE 1: PORTADA -->
+<div class="slide active" data-index="0">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:400px;height:400px;background:#f97316;top:10%;left:10%;animation:blob1 8s ease-in-out infinite"></div>
+    <div class="blob" style="width:350px;height:350px;background:#fbbf24;top:60%;right:15%;animation:blob2 10s ease-in-out infinite"></div>
+    <div class="blob" style="width:250px;height:250px;background:#f97316;bottom:10%;left:50%;animation:blob3 7s ease-in-out infinite"></div>
+    <div class="particle" style="left:10%;animation-delay:0s"></div>
+    <div class="particle" style="left:25%;animation-delay:0.5s;width:3px;height:3px"></div>
+    <div class="particle" style="left:40%;animation-delay:1.2s"></div>
+    <div class="particle" style="left:55%;animation-delay:0.8s;width:5px;height:5px"></div>
+    <div class="particle" style="left:70%;animation-delay:1.8s;width:3px;height:3px"></div>
+    <div class="particle" style="left:85%;animation-delay:2.5s"></div>
+    <div class="particle" style="left:15%;animation-delay:3s;width:2px;height:2px"></div>
+    <div class="particle" style="left:60%;animation-delay:0.3s"></div>
+    <div class="particle" style="left:90%;animation-delay:1.5s;width:3px;height:3px"></div>
+  </div>
+  <div style="position:relative;z-index:1;text-align:center;padding:40px;max-width:900px">
+    <div class="reveal"><h1 class="text-gradient" style="font-family:'Instrument Serif',serif;font-size:clamp(3rem,7vw,5.5rem);font-weight:700;margin:0;line-height:1.1">Food Delivery Analytics</h1></div>
+    <div class="reveal"><p style="color:#9ca3af;font-size:clamp(1rem,2vw,1.4rem);margin-top:16px;letter-spacing:2px;font-weight:300">ETL &middot; EDA &middot; Business Intelligence &middot; Machine Learning</p></div>
+    <div class="reveal" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:48px">
+      <div class="glass" style="padding:16px 24px;text-align:center;min-width:180px">
+        <p style="color:#f97316;font-weight:700;margin:0;font-size:1.1rem">Juan David Palacio</p>
+        <p style="color:#6b7280;margin:4px 0 0;font-size:0.85rem">Ingenieria de Sistemas</p>
+      </div>
+      <div class="glass" style="padding:16px 24px;text-align:center;min-width:180px">
+        <p style="color:#f97316;font-weight:700;margin:0;font-size:1.1rem">Sebastian Cuencar</p>
+        <p style="color:#6b7280;margin:4px 0 0;font-size:0.85rem">Ingenieria de Sistemas</p>
+      </div>
+      <div class="glass" style="padding:16px 24px;text-align:center;min-width:180px">
+        <p style="color:#f97316;font-weight:700;margin:0;font-size:1.1rem">Juan Jose Rua</p>
+        <p style="color:#6b7280;margin:4px 0 0;font-size:0.85rem">Ingenieria de Sistemas</p>
+      </div>
+      <div class="glass" style="padding:16px 24px;text-align:center;min-width:180px">
+        <p style="color:#f97316;font-weight:700;margin:0;font-size:1.1rem">Julian Ramirez</p>
+        <p style="color:#6b7280;margin:4px 0 0;font-size:0.85rem">Ingenieria de Sistemas</p>
+      </div>
+    </div>
+    <div class="reveal"><p style="color:#6b7280;margin-top:36px;font-size:1rem;letter-spacing:1px">2026-1 &middot; ITM &middot; Analisis de Datos</p></div>
+  </div>
+</div>
+
+<!-- SLIDE 2: AGENDA -->
+<div class="slide" data-index="1">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:300px;height:300px;background:#f97316;top:20%;right:20%;animation:blob1 9s ease-in-out infinite"></div>
+    <div class="blob" style="width:200px;height:200px;background:#fbbf24;bottom:10%;left:10%;animation:blob2 7s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1000px;width:90%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(2rem,4vw,3rem);color:white;margin:0 0 32px;text-align:center">Agenda</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;font-size:1.2rem;margin:0">01</p><p style="color:white;font-weight:600;margin:8px 0 4px">Dataset</p><p style="color:#6b7280;margin:0;font-size:0.9rem">Descripcion, variables cuantitativas y cualitativas</p></div>
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;font-size:1.2rem;margin:0">02</p><p style="color:white;font-weight:600;margin:8px 0 4px">ETL Pipeline</p><p style="color:#6b7280;margin:0;font-size:0.9rem">Extraccion, transformacion y carga de datos</p></div>
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;font-size:1.2rem;margin:0">03</p><p style="color:white;font-weight:600;margin:8px 0 4px">EDA</p><p style="color:#6b7280;margin:0;font-size:0.9rem">Hallazgos, distribuciones y graficas importantes</p></div>
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;font-size:1.2rem;margin:0">04</p><p style="color:white;font-weight:600;margin:8px 0 4px">Hipotesis</p><p style="color:#6b7280;margin:0;font-size:0.9rem">Pruebas estadisticas y validacion</p></div>
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;font-size:1.2rem;margin:0">05</p><p style="color:white;font-weight:600;margin:8px 0 4px">Business Intelligence</p><p style="color:#6b7280;margin:0;font-size:0.9rem">Dashboards, KPIs y hallazgos visuales</p></div>
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;font-size:1.2rem;margin:0">06</p><p style="color:white;font-weight:600;margin:8px 0 4px">Machine Learning</p><p style="color:#6b7280;margin:0;font-size:0.9rem">Modelos predictivos y conclusiones</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3: DESCRIPCION DEL DATASET -->
+<div class="slide" data-index="2">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:350px;height:350px;background:#f97316;top:0;right:0;animation:blob2 8s ease-in-out infinite"></div>
+    <div class="blob" style="width:200px;height:200px;background:#fbbf24;bottom:20%;left:5%;animation:blob3 6s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1000px;width:90%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(1.8rem,3.5vw,2.5rem);color:white;margin:0 0 24px;text-align:center">Descripcion del Dataset</h2></div>
+    <div class="reveal glass" style="padding:24px;margin-bottom:16px">
+      <p style="color:#d1d5db;margin:0;line-height:1.7;font-size:0.95rem">El dataset <span style="color:#f97316;font-weight:600">food_delivery_analytics_cleaned</span> contiene informacion sobre <span style="color:white;font-weight:600">15,000 ordenes</span> de comida a domicilio obtenido de Kaggle. Incluye datos del cliente, del restaurante, del repartidor, condiciones climaticas y de trafico, y metricas financieras. El pipeline ETL procesa los datos a traves de 4 capas: <span style="color:#fbbf24">raw &rarr; staging &rarr; processed &rarr; warehouse SQLite</span>, generando 10 variables derivadas adicionales.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div class="reveal glass" style="padding:20px;text-align:center"><p style="color:#f97316;font-size:2rem;font-weight:700;margin:0">15,000</p><p style="color:#9ca3af;margin:4px 0 0;font-size:0.9rem">Ordenes registradas</p></div>
+      <div class="reveal glass" style="padding:20px;text-align:center"><p style="color:#fbbf24;font-size:2rem;font-weight:700;margin:0">30+10</p><p style="color:#9ca3af;margin:4px 0 0;font-size:0.9rem">Variables originales + derivadas</p></div>
+      <div class="reveal glass" style="padding:20px;text-align:center"><p style="color:#f97316;font-size:2rem;font-weight:700;margin:0">4</p><p style="color:#9ca3af;margin:4px 0 0;font-size:0.9rem">Fases de procesamiento</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: VARIABLES DEL DATASET -->
+<div class="slide" data-index="3">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:300px;height:300px;background:#f97316;bottom:0;left:0;animation:blob1 8s ease-in-out infinite"></div>
+    <div class="blob" style="width:250px;height:250px;background:#fbbf24;top:10%;right:10%;animation:blob3 7s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1100px;width:92%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(1.6rem,3vw,2.2rem);color:white;margin:0 0 24px;text-align:center">Variables del Dataset</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;font-size:1.1rem;margin:0 0 12px">Cuantitativas (Continuas)</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:0.85rem;color:#9ca3af"><span>delivery_distance_km</span><span>preparation_time_minutes</span><span>delivery_time_minutes</span><span>order_value</span><span>delivery_fee</span><span>tip_amount</span><span>traffic_level_score</span><span>weather_severity_score</span><span>restaurant_rating</span><span>customer_rating</span><span>delivery_partner_rating</span><span>delivery_efficiency_score</span></div>
+        <p style="color:#fbbf24;font-weight:700;font-size:1rem;margin:16px 0 8px">Discretas</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:0.85rem;color:#9ca3af"><span>customer_age (18-75)</span><span>order_hour (0-23)</span><span>order_month (1-12)</span><span>number_of_items (1-12)</span><span>city_tier (1-3)</span><span>delivery_partner_experience_years</span></div>
+      </div>
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;font-size:1.1rem;margin:0 0 12px">Cualitativas / Booleanas</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:0.85rem;color:#9ca3af"><span>city_tier (1, 2, 3)</span><span>order_day_of_week (1-6)</span><span>cancellation_flag</span><span>delayed_delivery_flag</span><span>refund_flag</span><span>promo_code_used</span><span>premium_customer_flag</span><span>festival_or_weekend_flag</span></div>
+        <p style="color:#fbbf24;font-weight:700;font-size:1rem;margin:16px 0 8px">Derivadas (Feature Engineering)</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:0.85rem;color:#9ca3af"><span>delivery_time_category</span><span>order_value_category</span><span>high_traffic_flag</span><span>weather_risk_flag</span><span>customer_loyalty_segment</span><span>discount_percentage</span><span>tip_percentage</span><span>cost_efficiency_score</span><span>peak_hour_flag</span><span>operational_risk_score</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: ETL PIPELINE -->
+<div class="slide" data-index="4">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:350px;height:350px;background:#f97316;top:50%;right:0;animation:blob2 9s ease-in-out infinite"></div>
+    <div class="blob" style="width:200px;height:200px;background:#fbbf24;top:10%;left:20%;animation:blob1 7s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1000px;width:90%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(1.6rem,3vw,2.2rem);color:white;margin:0 0 24px;text-align:center">ETL Pipeline</h2></div>
+    <div class="reveal" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+      <div class="glass" style="padding:12px 24px;text-align:center;background:rgba(249,115,22,0.15)"><p style="color:#f97316;font-weight:700;margin:0;font-size:0.9rem">EXTRACT</p><p style="color:#6b7280;margin:4px 0 0;font-size:0.75rem">CSV raw</p></div>
+      <span style="color:#f97316;font-size:1.5rem">&rarr;</span>
+      <div class="glass" style="padding:12px 24px;text-align:center;background:rgba(249,115,22,0.15)"><p style="color:#f97316;font-weight:700;margin:0;font-size:0.9rem">TRANSFORM</p><p style="color:#6b7280;margin:4px 0 0;font-size:0.75rem">Limpieza + imputacion</p></div>
+      <span style="color:#f97316;font-size:1.5rem">&rarr;</span>
+      <div class="glass" style="padding:12px 24px;text-align:center;background:rgba(249,115,22,0.15)"><p style="color:#f97316;font-weight:700;margin:0;font-size:0.9rem">ENRICH</p><p style="color:#6b7280;margin:4px 0 0;font-size:0.75rem">10 variables derivadas</p></div>
+      <span style="color:#f97316;font-size:1.5rem">&rarr;</span>
+      <div class="glass" style="padding:12px 24px;text-align:center;background:rgba(249,115,22,0.15)"><p style="color:#f97316;font-weight:700;margin:0;font-size:0.9rem">LOAD</p><p style="color:#6b7280;margin:4px 0 0;font-size:0.75rem">SQLite DW</p></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;margin:0 0 8px">Outputs Generados</p>
+        <ul style="color:#9ca3af;margin:0;padding-left:16px;font-size:0.85rem"><li>food_delivery_staging.csv</li><li>food_delivery_processed.csv</li><li>quality_report.csv</li><li>food_delivery_dw.sqlite (esquema estrella)</li></ul>
+      </div>
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;margin:0 0 8px">Metricas ETL</p>
+        <ul style="color:#9ca3af;margin:0;padding-left:16px;font-size:0.85rem"><li>Filas procesadas: 15,000</li><li>Imputacion: mediana (numericas), moda (booleanas)</li><li>Normalizacion: snake_case</li><li>Tiempo por fase registrado en logs/etl.log</li></ul>
+      </div>
+    </div>
+    <div class="reveal" style="margin-top:12px;text-align:center"><span style="color:#6b7280;font-size:0.85rem">Tecnologias: Python 3, pandas, numpy, SQLAlchemy, SQLite, matplotlib, seaborn</span></div>
+  </div>
+</div>
+
+<!-- SLIDE 6: EDA HALLAZGOS CLAVE -->
+<div class="slide" data-index="5">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:250px;height:250px;background:#f97316;top:0;left:40%;animation:blob3 8s ease-in-out infinite"></div>
+    <div class="blob" style="width:300px;height:300px;background:#fbbf24;bottom:0;right:0;animation:blob2 9s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1000px;width:90%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(1.6rem,3vw,2.2rem);color:white;margin:0 0 24px;text-align:center">EDA: Hallazgos Clave</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="reveal glass glass-accent" style="padding:20px"><p style="color:#f97316;font-weight:700;margin:0 0 8px">Picos de Demanda</p><p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.6">Horas pico: 11-13h y 19-21h. Los fines de semana y festivos muestran mayor volumen de ordenes, capturado en festival_or_weekend_flag.</p></div>
+      <div class="reveal glass glass-accent" style="padding:20px"><p style="color:#f97316;font-weight:700;margin:0 0 8px">Impacto del Trafico</p><p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.6">Scores de trafico mayores o iguales a 7 estan correlacionados con retrasos en entrega. El 9.5% de las ordenes presentan delayed_delivery_flag.</p></div>
+      <div class="reveal glass glass-accent" style="padding:20px"><p style="color:#f97316;font-weight:700;margin:0 0 8px">Distribucion Financiera</p><p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.6">Distribucion asimetrica en order_value (media $113.95) y discount_amount. Clientes premium (28% del total) muestran mayor ticket promedio y menor tasa de cancelacion.</p></div>
+      <div class="reveal glass glass-accent" style="padding:20px"><p style="color:#f97316;font-weight:700;margin:0 0 8px">Ratings</p><p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.6">Alta correlacion entre delivery_partner_rating y customer_rating. Restaurantes con rating alto tienen menor tiempo de preparacion. CSAT promedio: 3.99/5.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: EDA VISUALIZACIONES -->
+<div class="slide" data-index="6">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:300px;height:300px;background:#f97316;top:20%;right:10%;animation:blob1 7s ease-in-out infinite"></div>
+    <div class="blob" style="width:200px;height:200px;background:#fbbf24;bottom:10%;left:20%;animation:blob3 9s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1100px;width:92%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(1.4rem,2.5vw,1.8rem);color:white;margin:0 0 20px;text-align:center">EDA: Visualizaciones</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <!-- Card 1: Delivery Time Distribution -->
+      <div class="reveal glass" style="padding:16px">
+        <p style="color:white;font-weight:600;margin:0 0 12px;font-size:0.9rem">Distribucion: Delivery Time (min)</p>
+        <div style="display:flex;align-items:flex-end;gap:8px;height:120px;padding-bottom:20px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div class="bar-v" style="height:0%;background:linear-gradient(to top,#f97316,#fbbf24);transition-delay:0.1s" data-height="45"></div><span style="color:#6b7280;font-size:0.65rem;margin-top:4px">&lt;60</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div class="bar-v" style="height:0%;background:linear-gradient(to top,#f97316,#fbbf24);transition-delay:0.2s" data-height="80"></div><span style="color:#6b7280;font-size:0.65rem;margin-top:4px">60-85</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div class="bar-v" style="height:0%;background:linear-gradient(to top,#f97316,#fbbf24);transition-delay:0.3s" data-height="100"></div><span style="color:#6b7280;font-size:0.65rem;margin-top:4px">85-105</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div class="bar-v" style="height:0%;background:linear-gradient(to top,#f97316,#fbbf24);transition-delay:0.4s" data-height="75"></div><span style="color:#6b7280;font-size:0.65rem;margin-top:4px">105-130</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div class="bar-v" style="height:0%;background:linear-gradient(to top,#f97316,#fbbf24);transition-delay:0.5s" data-height="35"></div><span style="color:#6b7280;font-size:0.65rem;margin-top:4px">130+</span></div>
+        </div>
+        <p style="color:#6b7280;margin:8px 0 0;font-size:0.75rem">Distribucion normal con media 94.14 min, std 33.6 min. Rango 10-180 min.</p>
+      </div>
+      <!-- Card 2: Correlacion Distancia-Tiempo -->
+      <div class="reveal glass" style="padding:16px">
+        <p style="color:white;font-weight:600;margin:0 0 12px;font-size:0.9rem">Correlacion Distancia vs Tiempo</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#9ca3af;font-size:0.8rem">Correlacion de Pearson</span><span style="color:white;font-weight:600;font-size:0.9rem">0.864</span></div><div style="background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden"><div class="bar-h" style="background:linear-gradient(to right,#f97316,#fbbf24);width:0%" data-width="86"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#9ca3af;font-size:0.8rem">Eficiencia nuevos (<=1 ano)</span><span style="color:white;font-weight:600;font-size:0.9rem">46.8 pts</span></div><div style="background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden"><div class="bar-h" style="background:linear-gradient(to right,#4ade80,#22c55e);width:0%" data-width="47"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#9ca3af;font-size:0.8rem">Eficiencia senior (>=14 anos)</span><span style="color:white;font-weight:600;font-size:0.9rem">70.8 pts</span></div><div style="background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden"><div class="bar-h" style="background:linear-gradient(to right,#22c55e,#16a34a);width:0%" data-width="71"></div></div></div>
+        </div>
+        <p style="color:#6b7280;margin:8px 0 0;font-size:0.75rem">Brecha de eficiencia por experiencia: +51.4%</p>
+      </div>
+      <!-- Card 3: Donut Premium -->
+      <div class="reveal glass" style="padding:16px">
+        <p style="color:white;font-weight:600;margin:0 0 12px;font-size:0.9rem">Clientes Premium vs Regulares</p>
+        <div style="display:flex;align-items:center;gap:16px">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="20"/>
+            <circle class="donut-segment" cx="60" cy="60" r="50" fill="none" stroke="#f97316" stroke-width="20" stroke-dasharray="314" stroke-dashoffset="314" stroke-linecap="round" transform="rotate(-90,60,60)" style="transition:stroke-dashoffset 1.5s ease 0.5s" data-pct="28"/>
+            <circle class="donut-segment" cx="60" cy="60" r="50" fill="none" stroke="#6b7280" stroke-width="20" stroke-dasharray="314" stroke-dashoffset="226" stroke-linecap="round" transform="rotate(-90,60,60)" style="transition:stroke-dashoffset 1.5s ease 0.5s" data-pct="72"/>
+          </svg>
+          <div><p style="color:#f97316;font-size:0.9rem;font-weight:600;margin:0">28% Premium</p><p style="color:#9ca3af;font-size:0.8rem;margin:0">4,221 de 15,000 ordenes</p><p style="color:#fbbf24;font-size:0.9rem;font-weight:600;margin:8px 0 0">72% Regular</p><p style="color:#9ca3af;font-size:0.8rem;margin:0">10,779 de 15,000 ordenes</p></div>
+        </div>
+      </div>
+      <!-- Card 4: Weather Impact -->
+      <div class="reveal glass" style="padding:16px">
+        <p style="color:white;font-weight:600;margin:0 0 12px;font-size:0.9rem">Impacto del Clima en Tiempo de Entrega</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#9ca3af;font-size:0.8rem">Clima leve (score 1-3)</span><span style="color:#9ca3af;font-size:0.8rem">87.7 min</span></div><div style="background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden"><div class="bar-h" style="background:linear-gradient(to right,#22c55e,#4ade80);width:0%" data-width="5"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#9ca3af;font-size:0.8rem">Clima moderado (4-6)</span><span style="color:#9ca3af;font-size:0.8rem">94.0 min</span></div><div style="background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden"><div class="bar-h" style="background:linear-gradient(to right,#f97316,#fb923c);width:0%" data-width="7"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#9ca3af;font-size:0.8rem">Clima severo (7-10)</span><span style="color:#9ca3af;font-size:0.8rem">100.4 min</span></div><div style="background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden"><div class="bar-h" style="background:linear-gradient(to right,#ef4444,#f87171);width:0%" data-width="14"></div></div></div>
+        </div>
+        <p style="color:#6b7280;margin:8px 0 0;font-size:0.75rem">Incremento sobre base leve: +7.2% moderado, +14.5% severo</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8: HIPOTESIS -->
+<div class="slide" data-index="7">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:300px;height:300px;background:#f97316;bottom:0;right:20%;animation:blob1 8s ease-in-out infinite"></div>
+    <div class="blob" style="width:200px;height:200px;background:#fbbf24;top:10%;left:5%;animation:blob2 7s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1000px;width:90%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(1.6rem,3vw,2.2rem);color:white;margin:0 0 20px;text-align:center">Hipotesis Estadisticas</h2></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="reveal glass" style="padding:16px 20px;display:flex;gap:16px;align-items:flex-start">
+        <span style="background:#f97316;color:white;font-weight:700;font-size:0.8rem;padding:4px 12px;border-radius:20px;white-space:nowrap;flex-shrink:0">CONFIRMADA</span>
+        <div><p style="color:white;font-weight:600;margin:0 0 4px;font-size:0.9rem">H1: Las horas pico incrementan el tiempo de entrega</p><p style="color:#6b7280;margin:0;font-size:0.8rem">Prueba: T-test / Mann-Whitney U entre horario pico (11-13, 19-21) y no pico sobre delivery_time_minutes. Resultado: pico 94.60 min vs no pico 93.99 min. Diferencia pequena pero consistente. (Fuente: hipotesis_kpis_powerbi.ipynb)</p></div>
+      </div>
+      <div class="reveal glass" style="padding:16px 20px;display:flex;gap:16px;align-items:flex-start">
+        <span style="background:#fbbf24;color:#0d1117;font-weight:700;font-size:0.8rem;padding:4px 12px;border-radius:20px;white-space:nowrap;flex-shrink:0">PARCIAL</span>
+        <div><p style="color:white;font-weight:600;margin:0 0 4px;font-size:0.9rem">H2: Trafico y clima severo incrementan el delivery_fee</p><p style="color:#6b7280;margin:0;font-size:0.8rem">Prueba: Regresion lineal multiple de delivery_fee ~ traffic_level_score + weather_severity_score. Resultado: No se encontro relacion significativa. Delivery fee se mantiene estable (~$7.45) independiente del nivel de riesgo. (Fuente: hipotesis_kpis_powerbi.ipynb)</p></div>
+      </div>
+      <div class="reveal glass" style="padding:16px 20px;display:flex;gap:16px;align-items:flex-start">
+        <span style="background:#6b7280;color:white;font-weight:700;font-size:0.8rem;padding:4px 12px;border-radius:20px;white-space:nowrap;flex-shrink:0">NO CONFIRMADA</span>
+        <div><p style="color:white;font-weight:600;margin:0 0 4px;font-size:0.9rem">H3: Los clientes premium tienen mayor satisfaccion (CSAT)</p><p style="color:#6b7280;margin:0;font-size:0.8rem">Prueba: Mann-Whitney U (alternativa greater) entre premium y no premium sobre customer_rating. Resultado: premium=4.0026 vs no premium=3.9906. p-valor=0.077 (NO significativo, p &gt; 0.05). Cohen d=0.0225 (efecto muy pequeno). (Fuente: eda_food_delivery.ipynb)</p></div>
+      </div>
+      <div class="reveal glass" style="padding:16px 20px;display:flex;gap:16px;align-items:flex-start">
+        <span style="background:#fbbf24;color:#0d1117;font-weight:700;font-size:0.8rem;padding:4px 12px;border-radius:20px;white-space:nowrap;flex-shrink:0">PARCIAL</span>
+        <div><p style="color:white;font-weight:600;margin:0 0 4px;font-size:0.9rem">H4: Los descuentos reducen la tasa de cancelacion</p><p style="color:#6b7280;margin:0;font-size:0.8rem">Prueba: Chi-cuadrado de independencia entre discount_amount > 0 y cancellation_flag. Resultado: Tasa de cancelacion en ordenes con descuento: 13.35%. Datos limitados: todas las ordenes en el warehouse tienen discount_amount > 0, impidiendo comparacion con grupo sin descuento. (Fuente: hipotesis_kpis_powerbi.ipynb)</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9: BI KPIs -->
+<div class="slide" data-index="8">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:300px;height:300px;background:#f97316;top:0;left:30%;animation:blob3 8s ease-in-out infinite"></div>
+    <div class="blob" style="width:250px;height:250px;background:#fbbf24;bottom:0;right:10%;animation:blob1 7s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1000px;width:90%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(1.4rem,2.5vw,1.8rem);color:white;margin:0 0 20px;text-align:center">Business Intelligence: KPIs</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="reveal glass" style="padding:20px;text-align:center">
+        <p class="count-up count-kpi" style="font-size:2.5rem;font-weight:700;margin:0;color:#f97316" data-target="94.14">0</p>
+        <p style="color:#9ca3af;margin:4px 0 0;font-size:0.9rem">Tiempo de entrega promedio (min)</p>
+      </div>
+      <div class="reveal glass" style="padding:20px;text-align:center">
+        <p class="count-up count-kpi" style="font-size:2.5rem;font-weight:700;margin:0;color:#fbbf24" data-target="9.47">0</p>
+        <p style="color:#9ca3af;margin:4px 0 0;font-size:0.9rem">Tasa de retrasos (%)</p>
+      </div>
+      <div class="reveal glass" style="padding:20px;text-align:center">
+        <p class="count-up count-kpi" style="font-size:2.5rem;font-weight:700;margin:0;color:#f97316" data-target="3.99">0</p>
+        <p style="color:#9ca3af;margin:4px 0 0;font-size:0.9rem">Rating promedio del cliente (CSAT)</p>
+      </div>
+      <div class="reveal glass" style="padding:20px;text-align:center">
+        <p class="count-up count-kpi" style="font-size:2.5rem;font-weight:700;margin:0;color:#fbbf24" data-target="13.35">0</p>
+        <p style="color:#9ca3af;margin:4px 0 0;font-size:0.9rem">Tasa de cancelacion (OCR) %</p>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="reveal glass" style="padding:14px">
+        <p style="color:#f97316;font-weight:600;margin:0 0 8px;font-size:0.85rem">CER - Cost Efficiency Ratio</p>
+        <p style="color:white;font-size:1.5rem;font-weight:700;margin:0">5.28</p>
+        <p style="color:#6b7280;margin:2px 0 0;font-size:0.75rem">Ingresos / (delivery_fee + descuentos)</p>
+      </div>
+      <div class="reveal glass" style="padding:14px">
+        <p style="color:#f97316;font-weight:600;margin:0 0 8px;font-size:0.85rem">Pico vs No Pico</p>
+        <p style="color:white;font-size:1.5rem;font-weight:700;margin:0">1.007</p>
+        <p style="color:#6b7280;margin:2px 0 0;font-size:0.75rem">Ratio ADT pico / ADT no pico (target: &le;1.2)</p>
+      </div>
+      <div class="reveal glass" style="padding:14px">
+        <p style="color:#f97316;font-weight:600;margin:0 0 8px;font-size:0.85rem">Retraso Global</p>
+        <p style="color:white;font-size:1.5rem;font-weight:700;margin:0">9.47%</p>
+        <p style="color:#6b7280;margin:2px 0 0;font-size:0.75rem">Ordenes con delayed_delivery_flag = True</p>
+      </div>
+      <div class="reveal glass" style="padding:14px">
+        <p style="color:#f97316;font-weight:600;margin:0 0 8px;font-size:0.85rem">OCR Mensual (rango)</p>
+        <p style="color:white;font-size:1.5rem;font-weight:700;margin:0">12.2% - 14.4%</p>
+        <p style="color:#6b7280;margin:2px 0 0;font-size:0.75rem">Tasa de cancelacion por mes en 2025</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 10: BI DASHBOARD -->
+<div class="slide" data-index="9">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:350px;height:350px;background:#f97316;top:30%;left:0;animation:blob2 9s ease-in-out infinite"></div>
+    <div class="blob" style="width:200px;height:200px;background:#fbbf24;top:10%;right:20%;animation:blob1 7s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1000px;width:90%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(1.4rem,2.5vw,1.8rem);color:white;margin:0 0 20px;text-align:center">Business Intelligence: Dashboard</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:12px">
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;margin:0 0 8px;font-size:0.9rem">Vista Operativa</p><p style="color:#9ca3af;margin:0;font-size:0.8rem;line-height:1.6">Mapa de calor de retrasos por hora y dia. Tasa de cancelacion filtrable por city_tier y tipo de cliente.</p></div>
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;margin:0 0 8px;font-size:0.9rem">Vista Financiera</p><p style="color:#9ca3af;margin:0;font-size:0.8rem;line-height:1.6">Evolucion de order_value por mes. Segmentacion de descuentos y propinas por perfil de cliente.</p></div>
+      <div class="reveal glass" style="padding:20px"><p style="color:#f97316;font-weight:700;margin:0 0 8px;font-size:0.9rem">Vista de Satisfaccion</p><p style="color:#9ca3af;margin:0;font-size:0.8rem;line-height:1.6">Scatter plot rating cliente vs rating repartidor. Filtros por restaurante y experiencia del partner.</p></div>
+    </div>
+    <div class="reveal" style="text-align:center"><span style="color:#6b7280;font-size:0.8rem">Dashboard construido con Power BI Desktop, conectado directamente al data warehouse SQLite (food_delivery_dw.sqlite)</span></div>
+  </div>
+</div>
+
+<!-- SLIDE 11: MACHINE LEARNING -->
+<div class="slide" data-index="10">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:300px;height:300px;background:#f97316;bottom:10%;right:0;animation:blob3 8s ease-in-out infinite"></div>
+    <div class="blob" style="width:250px;height:250px;background:#fbbf24;top:5%;left:20%;animation:blob2 7s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1000px;width:90%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(1.4rem,2.5vw,1.8rem);color:white;margin:0 0 16px;text-align:center">Machine Learning</h2></div>
+    <div class="reveal glass" style="padding:16px;margin-bottom:16px">
+      <p style="color:#9ca3af;margin:0;font-size:0.85rem">Dataset: food_delivery_processed.csv &mdash; <span style="color:white">15,000 filas x 40 columnas</span>. Variable objetivo: <span style="color:#f97316">delivery_time_minutes</span> (continua, rango 10-180 min, media 94.14 min, std 33.60 min). Pipeline sklearn: 30 variables numericas (imputacion mediana + StandardScaler) + 1 categorica (customer_loyalty_segment: imputacion moda + OneHotEncoder). Total features seleccionadas: <span style="color:white">31</span>.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="reveal glass" style="padding:20px">
+        <p style="color:#f97316;font-weight:700;margin:0 0 8px;font-size:1rem">Regresion Lineal (Baseline)</p>
+        <ul style="color:#9ca3af;margin:0;padding-left:16px;font-size:0.85rem">
+          <li>KFold con 5 folds, metrica RMSE</li>
+          <li>RMSE cross-validation: <span style="color:white;font-weight:600">8.06 min</span></li>
+          <li>Desviacion: +/- 0.10 min</li>
+          <li>Implementacion: sklearn LinearRegression</li>
+        </ul>
+      </div>
+      <div class="reveal glass" style="padding:20px">
+        <p style="color:#fbbf24;font-weight:700;margin:0 0 8px;font-size:1rem">Regresion Ridge (Regularizado)</p>
+        <ul style="color:#9ca3af;margin:0;padding-left:16px;font-size:0.85rem">
+          <li>Regularizacion L2 para controlar overfitting</li>
+          <li>Optimizacion: GridSearchCV sobre alpha</li>
+          <li>Alpha optimo: 10</li>
+          <li>R<sup>2</sup> en test: <span style="color:white;font-weight:600">0.943</span></li>
+          <li>RMSE en test: <span style="color:white;font-weight:600">8.04 min</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 12: CONCLUSIONES ML -->
+<div class="slide" data-index="11">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:300px;height:300px;background:#f97316;top:0;right:30%;animation:blob1 9s ease-in-out infinite"></div>
+    <div class="blob" style="width:200px;height:200px;background:#fbbf24;bottom:0;left:10%;animation:blob3 8s ease-in-out infinite"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1000px;width:90%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(1.6rem,3vw,2.2rem);color:white;margin:0 0 24px;text-align:center">Conclusiones del Modelo Predictivo</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="reveal glass glass-accent" style="padding:20px"><p style="color:white;font-weight:600;margin:0 0 6px;font-size:0.9rem">1. Precision del modelo</p><p style="color:#9ca3af;margin:0;font-size:0.85rem">RMSE de 8.06 min sobre variable con std de 33.6 min. El modelo explica el 94.3% de la varianza (R<sup>2</sup>).</p></div>
+      <div class="reveal glass glass-accent" style="padding:20px"><p style="color:white;font-weight:600;margin:0 0 6px;font-size:0.9rem">2. Ridge y colinealidad</p><p style="color:#9ca3af;margin:0;font-size:0.85rem">Ridge con alpha=10 reduce impacto de features con alta colinealidad entre variables de trafico y clima.</p></div>
+      <div class="reveal glass glass-accent" style="padding:20px"><p style="color:white;font-weight:600;margin:0 0 6px;font-size:0.9rem">3. Data leakage prevenido</p><p style="color:#9ca3af;margin:0;font-size:0.85rem">7 variables excluidas por leakage: estimated_delivery_time, delivery_time_category, delivery_efficiency_score, cost_efficiency_score, operational_risk_score, delayed_delivery_flag, order_value_category.</p></div>
+      <div class="reveal glass glass-accent" style="padding:20px"><p style="color:white;font-weight:600;margin:0 0 6px;font-size:0.9rem">4. Features mas influyentes</p><p style="color:#9ca3af;margin:0;font-size:0.85rem">delivery_distance_km (~29), preparation_time_minutes (~13), traffic_level_score (~6), weather_severity_score (~4).</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 13: CIERRE -->
+<div class="slide" data-index="12">
+  <div style="position:absolute;inset:0;overflow:hidden;z-index:0">
+    <div class="blob" style="width:400px;height:400px;background:#f97316;top:20%;left:30%;animation:blob1 8s ease-in-out infinite"></div>
+    <div class="blob" style="width:300px;height:300px;background:#fbbf24;bottom:10%;left:10%;animation:blob2 10s ease-in-out infinite"></div>
+    <div class="blob" style="width:250px;height:250px;background:#f97316;top:5%;right:10%;animation:blob3 7s ease-in-out infinite"></div>
+    <div class="particle" style="left:5%;animation-delay:0s"></div>
+    <div class="particle" style="left:20%;animation-delay:0.7s;width:3px;height:3px"></div>
+    <div class="particle" style="left:35%;animation-delay:1.5s"></div>
+    <div class="particle" style="left:50%;animation-delay:0.4s;width:5px;height:5px"></div>
+    <div class="particle" style="left:65%;animation-delay:1.2s;width:3px;height:3px"></div>
+    <div class="particle" style="left:80%;animation-delay:2s"></div>
+    <div class="particle" style="left:92%;animation-delay:0.9s;width:2px;height:2px"></div>
+  </div>
+  <div style="position:relative;z-index:1;padding:40px;max-width:1000px;width:90%">
+    <div class="reveal"><h2 style="font-family:'Instrument Serif',serif;font-size:clamp(2rem,4vw,3rem);color:white;margin:0 0 32px;text-align:center">Conclusiones Generales</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="reveal glass" style="padding:16px"><p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.5"><span style="color:#f97316;font-weight:700">1.</span> Pipeline ETL robusto con esquema estrella en SQLite y trazabilidad completa por logs. 15,000 ordenes procesadas con 10 variables derivadas.</p></div>
+      <div class="reveal glass" style="padding:16px"><p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.5"><span style="color:#f97316;font-weight:700">2.</span> EDA revelo que trafico y clima son los principales factores de retraso. El 9.47% de ordenes presentan retrasos, con picos en horas de alta demanda.</p></div>
+      <div class="reveal glass" style="padding:16px"><p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.5"><span style="color:#f97316;font-weight:700">3.</span> H1 (horas pico) confirmada con pico 94.60 min vs no pico 93.99 min. H2 (fee por condiciones) y H4 (descuentos vs cancelacion) requieren mas datos. H3 (premium vs CSAT) no significativa (p=0.077).</p></div>
+      <div class="reveal glass" style="padding:16px"><p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.5"><span style="color:#f97316;font-weight:700">4.</span> Dashboard Power BI conectado al DW (esquema estrella: fact + 4 dimensiones) permite monitoreo continuo de KPIs.</p></div>
+      <div class="reveal glass" style="padding:16px"><p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.5"><span style="color:#f97316;font-weight:700">5.</span> Regresion Lineal logra RMSE de 8.06 min. Ridge con alpha=10 alcanza R<sup>2</sup> de 0.943 prediciendo delivery_time_minutes.</p></div>
+      <div class="reveal glass" style="padding:16px"><p style="color:#9ca3af;margin:0;font-size:0.85rem;line-height:1.5"><span style="color:#f97316;font-weight:700">6.</span> Las features mas influyentes son delivery_distance_km, preparation_time_minutes y traffic_level_score.</p></div>
+    </div>
+    <div class="reveal" style="text-align:center;margin-top:28px"><p style="color:#6b7280;font-size:0.9rem;letter-spacing:1px">github.com/JDavidPC/food-delivery &middot; 2026-1 &middot; ITM</p></div>
+  </div>
+</div>
+
+</div>
+
+<!-- Navigation Bar -->
+<div style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:16px;background:rgba(13,17,23,0.85);backdrop-filter:blur(12px);padding:12px 24px;border-radius:40px;border:1px solid rgba(255,255,255,0.08)">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><span style="margin-top:-2px">&#8249;</span></button>
+  <div id="dots" style="display:flex;gap:8px"></div>
+  <span id="slideCounter" style="color:#6b7280;font-size:0.85rem;min-width:48px;text-align:center">1 / 13</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><span style="margin-top:-2px">&#8250;</span></button>
+</div>
+
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const dotsContainer = document.getElementById('dots');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const counter = document.getElementById('slideCounter');
+  let current = 0;
+  const total = slides.length;
+
+  for(let i=0;i<total;i++){
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i===0?' active':'');
+    dot.dataset.index = i;
+    dot.addEventListener('click',()=>goTo(i));
+    dotsContainer.appendChild(dot);
+  }
+
+  function activateSlide(index){
+    slides.forEach((s,i)=>{
+      s.classList.toggle('active',i===index);
+      if(i===index){
+        s.querySelectorAll('.bar-v').forEach(b=>{b.style.height='0px';void b.offsetHeight;b.style.height=b.dataset.height+'%'});
+        s.querySelectorAll('.bar-h').forEach(b=>{b.style.width='0px';void b.offsetHeight;b.style.width=b.dataset.width+'%'});
+        s.querySelectorAll('.donut-segment').forEach(d=>{
+          const pct = d.dataset.pct;
+          const circ = 2*Math.PI*50;
+          d.style.strokeDashoffset = circ;
+          void d.offsetHeight;
+          d.style.strokeDashoffset = circ*(1-pct/100);
+        });
+        // Count-up for KPIs
+        s.querySelectorAll('.count-kpi').forEach(el=>{
+          const target = parseFloat(el.dataset.target);
+          const duration = 1200;
+          const start = performance.now();
+          function update(now){
+            const elapsed = now-start;
+            const progress = Math.min(elapsed/duration,1);
+            const eased = 1-Math.pow(1-progress,3);
+            const val = eased*target;
+            el.textContent = target%1===0?Math.round(val):val.toFixed(2);
+            if(progress<1) requestAnimationFrame(update);
+          }
+          requestAnimationFrame(update);
+        });
+      }
+    });
+    document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===index));
+    counter.textContent = (index+1)+' / '+total;
+  }
+
+  function goTo(index){
+    if(index<0||index>=total)return;
+    current=index;
+    activateSlide(current);
+  }
+
+  function next(){goTo(current+1)}
+  function prev(){goTo(current-1)}
+
+  nextBtn.addEventListener('click',next);
+  prevBtn.addEventListener('click',prev);
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='ArrowDown'){e.preventDefault();next()}
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prev()}
+  });
+
+  // Touch swipe
+  let touchStartX=0,touchStartY=0;
+  document.addEventListener('touchstart',e=>{
+    touchStartX=e.changedTouches[0].screenX;
+    touchStartY=e.changedTouches[0].screenY;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].screenX-touchStartX;
+    const dy=e.changedTouches[0].screenY-touchStartY;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){
+      if(dx<0)next();else prev();
+    }
+  },{passive:true});
+
+  // Mouse spotlight
+  document.addEventListener('mousemove',e=>{
+    document.getElementById('spotlight').style.setProperty('--x',e.clientX+'px');
+    document.getElementById('spotlight').style.setProperty('--y',e.clientY+'px');
+  });
+
+  // Init first slide
+  activateSlide(0);
+})();
+</script>
+</body>
+</html>
